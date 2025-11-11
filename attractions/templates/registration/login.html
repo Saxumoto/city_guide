@@ -51,7 +51,6 @@
             </div>
         {% endif %}
 
-        <!-- The action targets the default Django login view, included in city_guide/urls.py -->
         <form method="post" class="django-form p-6 bg-gray-50 rounded-xl shadow-lg border border-gray-200">
             {% csrf_token %}
             
@@ -62,10 +61,8 @@
                 Log In
             </button>
             
-            <!-- Hidden input required to redirect to the correct page after login -->
             <input type="hidden" name="next" value="{{ next }}" />
         </form>
         
-        <!-- REMOVED: Problematic link to 'admin_password_reset' that caused crash -->
-    </div>
+        </div>
 {% endblock %}

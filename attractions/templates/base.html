@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Davao City Guide | {% block title %}{% endblock %}</title>
-    <!-- Load Tailwind CSS CDN for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -29,7 +28,6 @@
         }
     </style>
 
-    <!-- NEW BLOCK: Used to inject Leaflet CSS/JS from attraction_list.html -->
     {% block head_extra %}{% endblock %}
 
 </head>
@@ -59,7 +57,6 @@
                             Welcome, {{ user.username }}
                         </span>
                         
-                        <!-- FIX: Changed link to a secure POST form -->
                         <form action="{% url 'logout' %}" method="post" class="inline">
                             {% csrf_token %}
                             <button type="submit" 

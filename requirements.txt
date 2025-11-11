@@ -3,3 +3,5 @@ Pillow
 python-decouple
 psycopg2-binary
 gunicorn
+# FIX: Added django-storages for cloud deployment
+django-storages

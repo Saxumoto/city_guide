@@ -29,17 +29,18 @@ class Attraction(models.Model):
         max_length=255, 
         help_text="Physical address or area (e.g., Malagos, Calinan, or Roxas Avenue)."
     )
+    # --- FIX: Changed default coordinates to Central Davao to prevent Null Island issue ---
     latitude = models.DecimalField(
         max_digits=9, 
         decimal_places=6, 
         help_text="Latitude coordinate (e.g., 7.067). REQUIRED.",
-        default=0.000000 
+        default=7.068600 
     )
     longitude = models.DecimalField(
         max_digits=9, 
         decimal_places=6, 
         help_text="Longitude coordinate (e.g., 125.603). REQUIRED.",
-        default=0.000000
+        default=125.606300
     )
     contributor = models.ForeignKey(
         User, 
