@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Deletion{% endblock %}
+
+{% block content %}
+    <div class="max-w-xl mx-auto text-center p-8 bg-red-50 border border-red-200 rounded-xl shadow-lg">
+        <div class="text-6xl text-red-600 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.398 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-red-700 mb-4">Confirm Deletion</h1>
+        
+        <p class="text-lg text-gray-700 mb-8">
+            Are you absolutely sure you want to permanently delete the attraction: 
+            <strong class="font-extrabold text-red-800">{{ object.name }}</strong>? 
+            This action cannot be undone.
+        </p>
+        
+        <form method="post" class="space-y-4 sm:space-y-0 sm:flex sm:justify-center sm:space-x-4">
+            {% csrf_token %}
+            
+            <button type="submit" 
+                    class="w-full sm:w-auto bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition duration-150 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                Yes, Delete It Permanently
+            </button>
+            <a href="{% url 'attraction_detail' pk=object.pk %}" 
+               class="w-full sm:w-auto inline-block bg-davao-green text-white px-6 py-3 rounded-lg font-bold hover:bg-davao-dark transition duration-150 shadow-md focus:outline-none focus:ring-2 focus:ring-davao-green focus:ring-offset-2">
+                No, Keep It
+            </a>
+        </form>
+    </div>
+
+    <p class="mt-8 text-center">
+        <a href="{% url 'attraction_list' %}" class="text-davao-green hover:text-davao-dark font-medium underline">
+            ← Back to All Attractions
+        </a>
+    </p>
+{% endblock %}

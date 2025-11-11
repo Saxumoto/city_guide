@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Log In{% endblock %}
+
+{% block content %}
+    <style>
+        /* Custom styling to target default elements rendered by Django forms */
+        .django-form p {
+            margin-bottom: 1.5rem; 
+        }
+        .django-form label {
+            display: block;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        .django-form input:not([type="checkbox"]),
+        .django-form textarea,
+        .django-form select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .django-form input:focus {
+            border-color: #00796b;
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(0, 121, 107, 0.3);
+        }
+        .errorlist {
+            color: #ef4444; /* Red for errors */
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 1rem;
+        }
+    </style>
+    
+    <div class="max-w-md mx-auto">
+        <header class="text-center mb-8 border-b pb-4">
+            <h1 class="text-3xl font-extrabold text-davao-dark">Login to City Guide</h1>
+            <p class="text-gray-500 mt-2">Use your administrator account to manage attractions.</p>
+        </header>
+
+        {% if form.errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong class="font-bold">Error:</strong>
+                <span class="block sm:inline">Your username and password didn't match. Please try again.</span>
+            </div>
+        {% endif %}
+
+        <!-- The action targets the default Django login view, included in city_guide/urls.py -->
+        <form method="post" class="django-form p-6 bg-gray-50 rounded-xl shadow-lg border border-gray-200">
+            {% csrf_token %}
+            
+            {{ form.as_p }}
+            
+            <button type="submit" 
+                    class="w-full mt-4 bg-davao-green text-white px-6 py-3 rounded-lg font-bold hover:bg-davao-dark transition duration-150 shadow-md">
+                Log In
+            </button>
+            
+            <!-- Hidden input required to redirect to the correct page after login -->
+            <input type="hidden" name="next" value="{{ next }}" />
+        </form>
+        
+        <!-- REMOVED: Problematic link to 'admin_password_reset' that caused crash -->
+    </div>
+{% endblock %}

@@ -1,0 +1,47 @@
+Byte-compiled / optimized / DLL files
+
+pycache/
+*.pyc
+*.pyd
+*.pyo
+*.pylintrc
+
+Editor files
+
+.vscode
+.idea/
+
+OS generated files
+
+.DS_Store
+Thumbs.db
+
+Virtual environment
+
+/venv/
+/env/
+
+Django files
+
+Local database file (should NEVER be committed)
+
+db.sqlite3
+
+Django Secret Key file (if separate, but we use .env)
+
+Don't commit if your code creates it separately
+
+local_settings.py
+
+Python packages
+
+*.egg-info/
+dist/
+build/
+
+Deployment/Security files
+
+.env
+/staticfiles/
+/media/
+/Procfile

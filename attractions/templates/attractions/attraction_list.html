@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}All Attractions{% endblock %}
+
+{% block head_extra %}
+    <!-- Leaflet CSS and JS loaded here for better performance -->
+    <!-- FIX: REMOVED integrity and crossorigin attributes to bypass SRI security block -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            crossorigin=""></script>
+{% endblock %}
+
+{% block content %}
+    <header class="mb-8 border-b pb-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Davao City Attractions ({{ object_list|length }})</h1>
+            <a href="{% url 'attraction_create' %}" 
+               class="bg-davao-green text-white hover:bg-davao-dark px-4 py-2 rounded-lg text-sm font-medium transition duration-150 ease-in-out shadow-md">
+                + Create New Attraction
+            </a>
+        </div>
+    </header>
+
+    <!-- Map Container -->
+    <div class="mb-8 p-4 bg-gray-50 rounded-xl shadow-lg border border-gray-200">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">Attractions Map View</h2>
+        <div id="attractionMap" class="w-full rounded-lg shadow-md" style="height: 400px;"></div>
+    </div>
+    <!-- End Map Container -->
+
+
+    <!-- Search and Filter Form (Unchanged) -->
+    <form method="get" class="mb-8 p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        
+        <!-- Search Input -->
+        <div class="md:col-span-2">
+            <label for="id_q" class="block text-sm font-medium text-gray-700 mb-1">Search Keywords (Name, Description, Location)</label>
+            <input type="text" name="q" id="id_q" 
+                   value="{{ query }}" 
+                   placeholder="e.g., Crocodile Park, Roxas, nature"
+                   class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-davao-green focus:border-davao-green transition">
+        </div>
+
+        <!-- Category Filter -->
+        <div>
+            <label for="id_category" class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
+            <select name="category" id="id_category" 
+                    class="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-davao-green focus:border-davao-green transition">
+                <option value="ALL">All Categories</option>
+                {% for code, display_name in categories %}
+                    <option value="{{ code }}" {% if code == category_filter %}selected{% endif %}>
+                        {{ display_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="md:col-start-3 mt-4 md:mt-0">
+             <button type="submit" class="w-full bg-blue-600 text-white hover:bg-blue-700 px-4 py-2.5 rounded-lg font-medium transition duration-150 shadow-md">
+                Search & Filter
+            </button>
+        </div>
+    </form>
+
+
+    {% if object_list %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for attraction in object_list %}
+                <div class="bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 border border-gray-200">
+                    <h2 class="text-xl font-semibold mb-2 text-davao-dark hover:text-davao-green transition">
+                        <a href="{% url 'attraction_detail' pk=attraction.pk %}">{{ attraction.name }}</a>
+                    </h2>
+                    
+                    <div class="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+                        <span class="font-medium text-gray-700">{{ attraction.get_category_display }}</span>
+                        <span class="text-gray-400">•</span>
+                        <span class="text-xs {% if attraction.is_open %}text-green-600 bg-green-100{% else %}text-red-600 bg-red-100{% endif %} 
+                                     font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            {% if attraction.is_open %}Open{% else %}Closed{% endif %}
+                        </span>
+                    </div>
+
+                    <p class="text-gray-500 truncate mb-4">{{ attraction.description|default:"No description available." }}</p>
+
+                    <div class="mt-4 flex space-x-4">
+                        <a href="{% url 'attraction_detail' pk=attraction.pk %}" 
+                           class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                            View Details
+                        </a>
+                        
+                        <!-- Permission Check -->
+                        {% if user.is_authenticated and user == attraction.contributor %}
+                            <span class="text-gray-300">|</span>
+                            <a href="{% url 'attraction_update' pk=attraction.pk %}" 
+                               class="text-sm font-medium text-yellow-600 hover:text-yellow-800">
+                                Edit
+                            </a>
+                            <span class="text-gray-300">|</span>
+                            <a href="{% url 'attraction_delete' pk=attraction.pk %}" 
+                               class="text-sm font-medium text-red-600 hover:text-red-800">
+                                Delete
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12 bg-gray-100 rounded-xl border border-dashed border-gray-300">
+            <p class="text-lg text-gray-600 mb-4">No attractions match your search criteria.</p>
+            <p class="text-gray-500">Try broadening your search or selecting "All Categories."</p>
+            <a href="{% url 'attraction_list' %}" class="mt-4 inline-block text-davao-green hover:text-davao-dark font-medium underline">
+                Clear Search
+            </a>
+        </div>
+    {% endif %}
+    
+    <!-- CRITICAL: Hidden script tag to pass Django data to JavaScript safely -->
+    {% if object_list %}
+        <script id="attractions_data" type="application/json">
+            [
+                {% for attraction in object_list %}
+                    {
+                        "id": {{ attraction.pk }},
+                        "name": "{{ attraction.name|escapejs }}",
+                        "location": "{{ attraction.location|escapejs }}",
+                        "latitude": "{{ attraction.latitude }}",
+                        "longitude": "{{ attraction.longitude }}"
+                    }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        </script>
+    {% endif %}
+
+    <script>
+        let mapInstance = null; // Store map instance globally for reference
+
+        // Final, robust map initialization script using a timeout for guaranteed rendering
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // CRITICAL: Wrap the entire initialization process in a small timeout (50ms)
+            // to ensure the DOM has completed its layout calculations, fixing the white box issue.
+            setTimeout(function() {
+                const dataElement = document.getElementById('attractions_data');
+                let attractionData = [];
+                
+                if (dataElement && dataElement.textContent.trim().length > 0) {
+                    try {
+                        attractionData = JSON.parse(dataElement.textContent.trim());
+                    } catch (e) {
+                        console.error("Error parsing attraction data:", e);
+                    }
+                }
+
+                if (typeof L === 'undefined') {
+                    console.error("Leaflet.js not loaded.");
+                    return;
+                }
+
+                const defaultLat = 7.1907;
+                const defaultLon = 125.4550;
+                const defaultZoom = 10;
+
+                // Check if map instance already exists and remove it to prevent errors
+                let mapContainer = document.getElementById('attractionMap');
+                if (mapContainer._leaflet_id) {
+                    mapContainer._leaflet_id = null; 
+                }
+
+                const map = L.map('attractionMap').setView([defaultLat, defaultLon], defaultZoom);
+                mapInstance = map; // Store new instance
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                let hasMarkers = false;
+                let markers = [];
+
+                attractionData.forEach(function(attraction) {
+                    const lat = parseFloat(attraction.latitude);
+                    const lon = parseFloat(attraction.longitude);
+                    
+                    if (lat !== 0 && lon !== 0) {
+                        hasMarkers = true;
+                        
+                        const detailUrl = `/attractions/${attraction.id}/`;
+
+                        const popupContent = `
+                            <div class="font-sans text-sm">
+                                <h3 class="font-bold text-davao-dark">${attraction.name}</h3>
+                                <p class="text-gray-700">${attraction.location}</p>
+                                <a href="${detailUrl}" class="text-blue-600 hover:text-blue-800 font-medium">View Details</a>
+                            </div>
+                        `;
+
+                        const marker = L.marker([lat, lon])
+                            .addTo(map)
+                            .bindPopup(popupContent);
+                        
+                        markers.push(L.latLng(lat, lon));
+                    }
+                });
+
+                // CRITICAL: Forces the map to re-evaluate its size and draw tiles
+                map.invalidateSize();
+
+                if (hasMarkers && markers.length > 0) {
+                    const bounds = L.latLngBounds(markers);
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            }, 50); // Small delay to guarantee DOM rendering is complete
+        });
+    </script>
+{% endblock %}
