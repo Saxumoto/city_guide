@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from decouple import config, Csv
+import dj_database_url # NEW: Import the helper library
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -60,18 +61,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'city_guide.wsgi.application'
 
 
-# --- DATABASE CONFIGURATION (Reads from .env) ---
-DATABASES = {
-    'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
-        'NAME': config('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
-        # PostgreSQL specific settings (read only if DB_ENGINE is not default)
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default=''),
-        'PORT': config('DB_PORT', default=''),
+# --- DATABASE CONFIGURATION (FINAL FIX) ---
+if config('DATABASE_URL', default=None):
+    # CRITICAL: For Render, we use the DATABASE_URL environment variable 
+    # and the dj_database_url library to parse it correctly.
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_check=True,
+        )
     }
-}
+else:
+    # Use local SQLite settings if DATABASE_URL is not defined (for local development)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 AUTH_PASSWORD_VALIDATORS = [
