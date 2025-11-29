@@ -6,6 +6,12 @@ class Attraction(models.Model):
     """
     Model representing a tourist attraction in Davao City.
     """
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending Approval'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
+
     name = models.CharField(
         max_length=150, 
         unique=True, 
@@ -29,7 +35,6 @@ class Attraction(models.Model):
         max_length=255, 
         help_text="Physical address or area (e.g., Malagos, Calinan, or Roxas Avenue)."
     )
-    # --- FIX: Changed default coordinates to Central Davao to prevent Null Island issue ---
     latitude = models.DecimalField(
         max_digits=9, 
         decimal_places=6, 
@@ -58,6 +63,15 @@ class Attraction(models.Model):
         default=True, 
         help_text="Indicates if the attraction is currently open to the public."
     )
+    
+    # --- NEW FIELD FOR AUTHORITY SEPARATION ---
+    status = models.CharField(
+        max_length=10, 
+        choices=STATUS_CHOICES, 
+        default='PENDING',
+        help_text="Admins must approve this before it is visible to the public."
+    )
+    
     created_at = models.DateTimeField(
         auto_now_add=True
     )
@@ -70,12 +84,12 @@ class Attraction(models.Model):
         verbose_name_plural = "Attractions"
         
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_status_display()})"
 
     def get_absolute_url(self):
         return reverse('attraction_detail', kwargs={'pk': self.pk})
 
-# --- NEW REVIEW MODEL ---
+# --- REVIEW MODEL (Unchanged) ---
 
 class Review(models.Model):
     RATING_CHOICES = [
@@ -108,7 +122,6 @@ class Review(models.Model):
     )
 
     class Meta:
-        # Ensures a user can only review a single attraction once
         unique_together = ('attraction', 'user')
         ordering = ['-created_at']
 

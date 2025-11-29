@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% load static %} <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -35,9 +35,17 @@
     <div class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav class="flex justify-between items-center h-16">
-                <div class="text-2xl font-extrabold text-davao-dark">
-                    <a href="{% url 'home' %}">City Guide</a>
+                
+                <div class="flex items-center">
+                    <a href="{% url 'home' %}" class="flex items-center space-x-2 text-2xl font-extrabold text-davao-dark hover:text-davao-green transition">
+                        <img src="{% static 'attractions/images/logo.png' %}" 
+                             alt="Logo" 
+                             class="h-10 w-10 object-contain"
+                             onerror="this.style.display='none'"> 
+                        <span>Davao City Guide</span>
+                    </a>
                 </div>
+                
                 <div class="flex items-center space-x-4">
                     <a href="{% url 'attraction_list' %}" 
                        class="text-davao-green hover:text-davao-dark transition duration-150 ease-in-out font-medium p-2 rounded-lg">
@@ -54,7 +62,7 @@
                             + Add New
                         </a>
                         <span class="text-gray-600 text-sm hidden md:block">
-                            Welcome, {{ user.username }}
+                            {{ user.username }}
                         </span>
                         
                         <form action="{% url 'logout' %}" method="post" class="inline">
@@ -65,10 +73,12 @@
                             </button>
                         </form>
 
-                        <a href="{% url 'admin:index' %}" 
-                           class="text-gray-600 hover:text-davao-dark transition duration-150 ease-in-out p-2 rounded-lg text-sm">
-                            Admin
-                        </a>
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin:index' %}" 
+                               class="text-gray-600 hover:text-davao-dark transition duration-150 ease-in-out p-2 rounded-lg text-sm">
+                                Admin
+                            </a>
+                        {% endif %}
                     {% else %}
                         <a href="{% url 'register' %}"
                            class="text-davao-green hover:text-davao-dark transition duration-150 ease-in-out font-medium p-2 rounded-lg text-sm">
