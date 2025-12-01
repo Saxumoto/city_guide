@@ -45,14 +45,37 @@
         </div>
         
         {% if is_paginated %}
-        <div class="mt-8 flex justify-center space-x-2">
-            {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 border rounded-lg hover:bg-gray-100">Previous</a>
-            {% endif %}
-            <span class="px-4 py-2 text-gray-700">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 border rounded-lg hover:bg-gray-100">Next</a>
-            {% endif %}
+        <div class="mt-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <div class="text-sm text-gray-600">
+                Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} 
+                ({{ paginator.count }} total contributions)
+            </div>
+            <div class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" 
+                       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition">
+                        ← Previous
+                    </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-4 py-2 bg-davao-green text-white rounded-lg font-medium">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}" 
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition">
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" 
+                       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition">
+                        Next →
+                    </a>
+                {% endif %}
+            </div>
         </div>
         {% endif %}
 

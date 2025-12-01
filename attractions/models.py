@@ -82,6 +82,12 @@ class Attraction(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name_plural = "Attractions"
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['category']),
+            models.Index(fields=['contributor']),
+            models.Index(fields=['created_at']),
+        ]
         
     def __str__(self):
         return f"{self.name} ({self.get_status_display()})"
@@ -124,6 +130,10 @@ class Review(models.Model):
     class Meta:
         unique_together = ('attraction', 'user')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['attraction', 'created_at']),
+            models.Index(fields=['user']),
+        ]
 
     def __str__(self):
         return f'{self.attraction.name} - {self.rating} stars by {self.user.username}'

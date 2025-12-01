@@ -11,8 +11,9 @@ from django.db.models import Q, Avg
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin 
 from django.contrib.auth import login 
+from django.contrib import messages
 from .models import Attraction, Review 
-from .forms import CustomUserCreationForm, ReviewForm 
+from .forms import CustomUserCreationForm, ReviewForm, AttractionForm 
 
 # --- REVIEW CREATION VIEW ---
 
@@ -22,6 +23,7 @@ class ReviewCreateView(LoginRequiredMixin, View):
         existing_review = Review.objects.filter(attraction=attraction, user=request.user).exists()
         
         if existing_review:
+            messages.warning(request, 'You have already submitted a review for this attraction.')
             return redirect('attraction_detail', pk=pk)
         
         form = ReviewForm(request.POST)
@@ -30,6 +32,9 @@ class ReviewCreateView(LoginRequiredMixin, View):
             review.attraction = attraction
             review.user = request.user
             review.save()
+            messages.success(request, 'Thank you! Your review has been submitted.')
+        else:
+            messages.error(request, 'Please correct the errors in your review.')
         
         return redirect('attraction_detail', pk=pk)
 
@@ -37,7 +42,8 @@ class ReviewCreateView(LoginRequiredMixin, View):
 # --- HOME AND AUTH VIEWS ---
 
 def home_view(request):
-    return render(request, 'home.html')
+    # Redirect to attractions list as home page
+    return redirect('attraction_list')
 
 class RegisterView(View):
     template_name = 'registration/register.html'
@@ -150,7 +156,7 @@ class AttractionDetailView(DetailView):
 
 class AttractionCreateView(LoginRequiredMixin, CreateView):
     model = Attraction
-    fields = ['name', 'description', 'category', 'location', 'latitude', 'longitude', 'image', 'is_open'] 
+    form_class = AttractionForm
     template_name = 'attractions/attraction_form.html'
 
     def form_valid(self, form):
@@ -159,20 +165,31 @@ class AttractionCreateView(LoginRequiredMixin, CreateView):
         # LOGIC: Admins get auto-approved; Regular users go to PENDING
         if self.request.user.is_staff:
             form.instance.status = 'APPROVED'
+            messages.success(self.request, 'Attraction created and approved!')
         else:
             form.instance.status = 'PENDING'
+            messages.success(self.request, 'Attraction submitted! It will be visible after admin approval.')
             
         return super().form_valid(form)
 
 class AttractionUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Attraction
-    fields = ['name', 'description', 'category', 'location', 'latitude', 'longitude', 'image', 'is_open']
+    form_class = AttractionForm
     template_name = 'attractions/attraction_form.html'
 
     def test_func(self):
         attraction = self.get_object()
         # Allow if User is the Contributor OR User is an Admin
         return self.request.user == attraction.contributor or self.request.user.is_staff
+    
+    def form_valid(self, form):
+        # If updated by non-admin, reset status to PENDING
+        if not self.request.user.is_staff and form.instance.status == 'APPROVED':
+            form.instance.status = 'PENDING'
+            messages.info(self.request, 'Attraction updated. Status reset to PENDING for admin review.')
+        else:
+            messages.success(self.request, 'Attraction updated successfully!')
+        return super().form_valid(form)
 
 class AttractionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Attraction
